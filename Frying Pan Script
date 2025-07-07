@@ -1,0 +1,69 @@
+extends StaticBody2D
+
+signal splat
+var splatted = false
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	$"../CharacterBody2D/eggshell".gravity_scale = 0
+	$"../CharacterBody2D/eggshell2".gravity_scale = 0
+
+func splode():
+	$"../crack".play()
+	for kid in $"..".find_children("music*"):
+		kid.stop()
+		kid.pitch_scale += .1
+	
+	var player = $"../CharacterBody2D"
+	var shell = player.get_node("eggshell")
+	shell.get_parent().remove_child(shell)
+	get_tree().current_scene.add_child(shell)
+	shell.global_position = player.global_position
+	shell.sleeping = false
+	shell.gravity_scale = 1
+	shell.visible = true
+	shell.linear_velocity = Vector2(-100, -600)
+	var shell2 = player.get_node("eggshell2")
+	shell2.get_parent().remove_child(shell2)
+	get_tree().current_scene.add_child(shell2)
+	shell2.global_position = player.global_position
+	shell2.sleeping = false
+	shell2.gravity_scale = 1
+	shell2.visible = true
+	shell2.linear_velocity = Vector2(100,-600)
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	pass
+	
+func _on_area_2d_body_entered(body: Node2D) -> void:
+	if body == $"../CharacterBody2D":
+		if $"../CharacterBody2D".velocity.y > 1000:
+			$AnimatedSprite2D.animation = "fried"
+			if !splatted:
+				splatted = true
+				splode()
+				var player = $"../CharacterBody2D"
+				player.hide()
+				player.set_physics_process(false)
+				player.eggs -= 1
+				await get_tree().create_timer(2.0).timeout
+				for kid in $"..".find_children("music*"):
+					kid.play()
+				player.position = $"../dozen eggs".position
+				player.show()
+				player.set_physics_process(true)
+				var shell = get_tree().current_scene.get_node("eggshell")
+				shell.get_parent().remove_child(shell)
+				player.add_child(shell)
+				shell.sleeping = true
+				shell.gravity_scale = 0
+				shell.visible = false
+				shell.rotation = 0
+				var shell2 = get_tree().current_scene.get_node("eggshell2")
+				shell2.get_parent().remove_child(shell2)
+				player.add_child(shell2)
+				shell2.sleeping = true
+				shell2.gravity_scale = 0
+				shell2.visible = false
+				shell2.rotation = 0
